@@ -99,6 +99,21 @@
       holidays = [...h1, ...h2];
     }
 
+    // NY FUNKTION: Försök hämta från API igen periodiskt
+    async function refreshHolidaysFromAPI() {
+      const thisYear = new Date().getFullYear();
+      const nextYear = thisYear + 1;
+      try {
+        const [h1, h2] = await Promise.all([fetchHolidays(thisYear), fetchHolidays(nextYear)]);
+        holidays = [...h1, ...h2];
+        console.log("Hämtade helgdagar från API igen!");
+      } catch (err) {
+        console.warn("API fortfarande nere, fortsätter med lokal lista:", err);
+      }
+    }
+    // Kör varje 6:e timme
+    setInterval(refreshHolidaysFromAPI, 6 * 60 * 60 * 1000);
+
     function isValidWorkday(date) {
       const day = date.getDay();
       const str = date.toISOString().split("T")[0];
