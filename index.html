@@ -62,6 +62,7 @@
   <script>
     const startDate = new Date("2025-01-02");
     let holidays = [];
+    const TIME_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minuter
 
     const localHolidays = [
       "2025-01-01","2025-01-06","2025-04-18","2025-04-20","2025-04-21","2025-05-01","2025-05-29","2025-06-06","2025-06-20","2025-06-21","2025-11-01","2025-12-24","2025-12-25","2025-12-26",
@@ -204,8 +205,20 @@
       return next;
     }
 
+    // --- ÄNDRAD DEL START ---
+    let currentTime = null;
+    let lastSync = 0;
+
     async function updateClockAndCountdown() {
-      const now = await getSwedishTime();
+      const nowMs = Date.now();
+      if (!currentTime || nowMs - lastSync > TIME_SYNC_INTERVAL) {
+        currentTime = await getSwedishTime();
+        lastSync = nowMs;
+      } else {
+        currentTime = new Date(currentTime.getTime() + 1000);
+      }
+
+      let now = currentTime;
 
       let nextWorkday = new Date(now);
       nextWorkday.setHours(5,30,0,0);
@@ -232,6 +245,7 @@
       const secondsLeft = String(Math.floor((diff / 1000) % 60)).padStart(2,'0');
       document.getElementById("countdown-text").textContent = `Tid kvar till nästa arbetsdygn ${hoursLeft}:${minutesLeft}:${secondsLeft}`;
     }
+    // --- ÄNDRAD DEL SLUT ---
 
     function scheduleLetterUpdate() {
       getSwedishTime().then(now => {
