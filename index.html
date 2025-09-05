@@ -12,6 +12,7 @@
       height: 100vh; 
       font-family: Arial, sans-serif; 
       transition: background 1.5s ease;
+      background: linear-gradient(135deg, #0BA2F4, #004080);
     }
     .letter { 
       font-size: 15rem;
@@ -19,11 +20,14 @@
       display: inline-block;
       transition: transform 0.6s ease, opacity 0.6s ease;
       transform-origin: center;
+      opacity: 0;
     }
     .date, .weekday {
       font-size: 4rem;
       font-weight: bold;
       margin-top: 0.5rem;
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease;
     }
     .next-workday-text,
     .clock-text,
@@ -32,10 +36,11 @@
       font-weight: bold;
       text-align: center;
       margin-top: 0.5rem;
-      transition: none;
       overflow-wrap: break-word;
       word-wrap: break-word;
       max-width: 90vw;
+      opacity: 0;
+      transition: transform 0.6s ease, opacity 0.6s ease;
     }
     .letter, .date, .weekday, .next-workday-text, .clock-text, .countdown-text {
       color: #fff;
@@ -44,32 +49,25 @@
   </style>
 </head>
 <body>
-  <div class="letter" id="letter">...</div>
-  <div class="date" id="date">...</div>
-  <div class="weekday" id="weekday">...</div>
+  <div class="letter" id="letter"></div>
+  <div class="date" id="date"></div>
+  <div class="weekday" id="weekday"></div>
   <div class="clock-text" id="clock-text"></div>
   <div class="next-workday-text" id="next-workday-text"></div>
   <div class="countdown-text" id="countdown-text"></div>
 
   <script>
     const startDate = new Date("2025-01-02");
-    let holidays = []; // fylls av API eller fallback
+    let holidays = [];
 
-    // Lokal fallback-lista 2025–2027
-const localHolidays = [
-  // 2025
-  "2025-01-01", "2025-01-06", "2025-04-18", "2025-04-20", "2025-04-21", "2025-05-01", "2025-05-29", "2025-06-06", "2025-06-20", "2025-06-21", "2025-11-01", "2025-12-24", "2025-12-25", "2025-12-26",
-  // 2026
-  "2026-01-01", "2026-01-06", "2026-04-03", "2026-04-05", "2026-04-06", "2026-05-01", "2026-05-14", "2026-05-24", "2026-06-06", "2026-06-20", "2026-10-31", "2026-11-01", "2026-12-24", "2026-12-25", "2026-12-26",
-  // 2027
-  "2027-01-01", "2027-01-06", "2027-04-02", "2027-04-04", "2027-04-05", "2027-05-01", "2027-05-13", "2027-05-23", "2027-06-06", "2027-06-26", "2027-10-31", "2027-11-01", "2027-12-24", "2027-12-25", "2027-12-26",
-  // 2028
-  "2028-01-01", "2028-01-06", "2028-04-14", "2028-04-16", "2028-04-17", "2028-05-01", "2028-05-25", "2028-06-04", "2028-06-06", "2028-06-23", "2028-06-24", "2028-10-31", "2028-12-24", "2028-12-25", "2028-12-26",
-  // 2029
-  "2029-01-01", "2029-01-06", "2029-03-30", "2029-04-01", "2029-04-02", "2029-05-01", "2029-05-10", "2029-05-20", "2029-06-06", "2029-06-22", "2029-06-23", "2029-11-03", "2029-12-24", "2029-12-25", "2029-12-26"
-];
+    const localHolidays = [
+      "2025-01-01","2025-01-06","2025-04-18","2025-04-20","2025-04-21","2025-05-01","2025-05-29","2025-06-06","2025-06-20","2025-06-21","2025-11-01","2025-12-24","2025-12-25","2025-12-26",
+      "2026-01-01","2026-01-06","2026-04-03","2026-04-05","2026-04-06","2026-05-01","2026-05-14","2026-05-24","2026-06-06","2026-06-20","2026-10-31","2026-11-01","2026-12-24","2026-12-25","2026-12-26",
+      "2027-01-01","2027-01-06","2027-04-02","2027-04-04","2027-04-05","2027-05-01","2027-05-13","2027-05-23","2027-06-06","2027-06-26","2027-10-31","2027-11-01","2027-12-24","2027-12-25","2027-12-26",
+      "2028-01-01","2028-01-06","2028-04-14","2028-04-16","2028-04-17","2028-05-01","2028-05-25","2028-06-04","2028-06-06","2028-06-23","2028-06-24","2028-10-31","2028-12-24","2028-12-25","2028-12-26",
+      "2029-01-01","2029-01-06","2029-03-30","2029-04-01","2029-04-02","2029-05-01","2029-05-10","2029-05-20","2029-06-06","2029-06-22","2029-06-23","2029-11-03","2029-12-24","2029-12-25","2029-12-26"
+    ];
 
-    // Hämta helgdagar via API, fallback till lokal lista
     async function fetchHolidays(year) {
       try {
         const res = await fetch(`https://api.dagsmart.se/holidays?year=${year}&weekends=false`);
@@ -82,7 +80,6 @@ const localHolidays = [
       }
     }
 
-    // Hämta svensk tid via API, fallback till lokal tid
     async function getSwedishTime() {
       try {
         const res = await fetch("https://worldtimeapi.org/api/timezone/Europe/Stockholm");
@@ -127,7 +124,9 @@ const localHolidays = [
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    async function displayLetter(doFlip = false) {
+    let currentLetter = null;
+
+    async function displayLetter(doFlip = true) {
       let now = await getSwedishTime();
 
       let workdayCheck = new Date(now);
@@ -137,9 +136,6 @@ const localHolidays = [
 
       let today = new Date(now);
       today.setHours(0,0,0,0);
-
-      const thisYear = today.getFullYear();
-      const nextYear = thisYear + 1;
 
       if (holidays.length === 0) await loadHolidays();
 
@@ -155,27 +151,33 @@ const localHolidays = [
       const letter = (count % 2 === 0) ? "Y" : "X";
 
       const letterEl = document.getElementById("letter");
-      if (doFlip) {
+
+      // Bakgrund alltid först (CSS transition gör fade)
+      document.body.style.background = (letter === "X") 
+        ? "linear-gradient(135deg, #0BA2F4, #004080)"
+        : "linear-gradient(135deg, #27F584, #008040)";
+
+      if (doFlip || letter !== currentLetter) {
         letterEl.style.transform = "rotateY(90deg)";
         letterEl.style.opacity = 0;
         setTimeout(() => {
           letterEl.textContent = letter;
           letterEl.style.transform = "rotateY(0deg)";
           letterEl.style.opacity = 1;
+          document.querySelectorAll(".date, .weekday, .next-workday-text, .clock-text, .countdown-text")
+            .forEach(el => el.style.opacity = 1);
         }, 600);
       } else {
         letterEl.textContent = letter;
       }
+
+      currentLetter = letter;
 
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, "0");
       const dd = String(now.getDate()).padStart(2, "0");
       document.getElementById("date").textContent = `${yyyy}-${mm}-${dd}`;
       document.getElementById("weekday").textContent = capitalize(now.toLocaleDateString('sv-SE', { weekday: 'long' }));
-
-      document.body.style.background = (letter === "X") 
-        ? "linear-gradient(135deg, #0BA2F4, #004080)"
-        : "linear-gradient(135deg, #27F584, #008040)";
     }
 
     function getNextWorkdayStart(now) {
@@ -227,10 +229,9 @@ const localHolidays = [
     }
 
     setInterval(() => displayLetter(false), 60000);
-    displayLetter();
+    displayLetter(true);
     scheduleLetterUpdate();
     setInterval(updateClockAndCountdown, 1000);
   </script>
 </body>
 </html>
-
